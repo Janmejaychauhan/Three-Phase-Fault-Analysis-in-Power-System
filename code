@@ -1,0 +1,48 @@
+model = 'model.slx';
+new_system(model)
+open_system(model)
+
+set_param(model, 'Solver', 'ode45', 'StopTime', '1', 'SolverType', 'Fixed-step', 'FixedStep', '1e-4')
+
+add_block('powerlib/Powergui', [model '/powergui'], 'Position', [600 50 700 100])
+set_param([model '/powergui'], 'SimulationType', 'Discrete', 'SampleTime', '1e-4')
+
+add_block('powerlib/Elements/Three-Phase Source', [model '/Generator1'], 'Position', [30 200 80 250])
+set_param([model '/Generator1'], 'PhaseAngle', '0', 'Frequency', '50', 'Amplitude', '1')
+
+add_block('powerlib/Elements/Three-Phase Mutual Inductance', [model '/Z1-Z1'], 'Position', [100 200 180 250])
+
+add_block('powerlib/Elements/Three-Phase Transformer (Two Windings)', [model '/T1'], 'Position', [200 180 300 260])
+set_param([model '/T1'], 'NominalPower', '100e6', 'Frequency', '50', 'V1', '11e3', 'V2', '400e3')
+
+add_block('powerlib/Elements/Three-Phase PI Section Line', [model '/Line1'], 'Position', [320 180 420 260])
+set_param([model '/Line1'], 'Length', '100e3')
+
+add_block('powerlib/Measurements/Three-Phase V-I Measurement', [model '/V-I Measurement'], 'Position', [440 180 520 260])
+
+add_block('powerlib/Elements/Three-Phase Fault', [model '/Three Phase Fault'], 'Position', [560 250 620 300])
+set_param([model '/Three Phase Fault'], 'FaultResistance', '0.001', 'SwitchTimes', '[0.2 0.4]')
+
+add_block('powerlib/Elements/Three-Phase PI Section Line', [model '/Line2'], 'Position', [640 180 740 260])
+set_param([model '/Line2'], 'Length', '100e3')
+
+add_block('powerlib/Elements/Three-Phase Transformer (Two Windings)', [model '/T2'], 'Position', [760 180 860 260])
+set_param([model '/T2'], 'NominalPower', '100e6', 'Frequency', '50', 'V1', '11e3', 'V2', '400e3')
+
+add_block('powerlib/Elements/Three-Phase Mutual Inductance', [model '/Z2-Z2'], 'Position', [880 200 960 250])
+
+add_block('powerlib/Elements/Three-Phase Source', [model '/Generator2'], 'Position', [980 200 1030 250])
+set_param([model '/Generator2'], 'PhaseAngle', '0', 'Frequency', '50', 'Amplitude', '1')
+
+add_line(model, 'Generator1/1', 'Z1-Z1/1')
+add_line(model, 'Z1-Z1/2', 'T1/1')
+add_line(model, 'T1/2', 'Line1/1')
+add_line(model, 'Line1/2', 'V-I Measurement/1')
+add_line(model, 'V-I Measurement/2', 'Line2/1')
+add_line(model, 'Line2/2', 'T2/1')
+add_line(model, 'T2/2', 'Z2-Z2/1')
+add_line(model, 'Z2-Z2/2', 'Generator2/1')
+add_line(model, 'V-I Measurement/1', 'Three Phase Fault/1', 'autorouting', 'on')
+
+save_system(model)
+open_system(model)
